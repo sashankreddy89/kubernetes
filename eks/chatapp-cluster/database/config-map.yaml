@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-vars
+data:
+  MYSQL_DATABASE: "chatapp_db"
+  MYSQL_USER: "chatapp_user"

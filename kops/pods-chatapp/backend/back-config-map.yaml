@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-vars
+data:
+  DB_NAME: chatapp_db
+  DB_USER: chatapp_user
+  DB_HOST: db-svc
+  DB_PORT: "3306"
+

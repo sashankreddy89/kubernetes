@@ -1,0 +1,20 @@
+apiVersion: v2
+name: chatapp
+version: 0.1.0
+description: Umbrella chart for ChatApp
+
+type: application
+
+dependencies:
+  - name: chatapp-backend
+    version: 0.1.0
+    repository: "file://../chatapp-backend"
+
+  - name: chatapp-fronend
+    version: 0.1.0
+    repository: "file://../chatapp-fronend"
+
+  - name: chatapp-database
+    version: 0.1.0
+    repository: "file://../chatapp-database"
+

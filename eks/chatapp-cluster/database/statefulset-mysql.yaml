@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: chatapp-db-ss
+spec:
+  selector:
+    matchLabels:
+      app: chatapp-db # has to match .spec.template.metadata.labels
+  serviceName: "mysql-headless"
+  replicas: 1 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: chatapp-db # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      tolerations:
+        - key: "database"
+          operator: "Equal"
+          value: "True"
+          effect: "NoSchedule"
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: database
+                operator: In
+                values:
+                - "True"
+
+      containers:
+        - name: chatapp-mysql
+          image: mysql
+          ports:
+            - containerPort: 3306
+              name: db-port
+          volumeMounts:
+            - name: mysql
+              mountPath: /var/lib/mysql
+          envFrom:
+            - configMapRef:
+                name: db-vars
+            - secretRef:
+                name: db-secrets
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 3
+
+          startupProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: 5
+            failureThreshold: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "ebs-sc"
+        resources:
+          requests:
+            storage: 1Gi

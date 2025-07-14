@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: high-cpu-test
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: high-cpu-test
+  template:
+    metadata:
+      labels:
+        app: high-cpu-test
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command: ["sh", "-c", "while true; do echo busy; sleep 5; done"]
+        resources:
+          requests:
+            cpu: "500m"
+          limits:
+            cpu: "500m"
+

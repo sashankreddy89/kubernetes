@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatapp-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatapp-backend
+  template:
+    metadata:
+      labels:
+        app: chatapp-backend
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done",
+            ]
+      containers:
+        - name: chatapp-backend
+          image: sashankreddy97/chatapp-backend:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+

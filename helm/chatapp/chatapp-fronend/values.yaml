@@ -1,0 +1,38 @@
+frontend:
+  replicaCount: 1
+
+  image: sashankreddy97/chatapp-frontend
+
+  service:
+    port: 80
+
+  pdb:
+    minAvailable: 50%
+
+  hpa:
+    minReplicas: 2
+    maxReplicas: 6
+    cpuTarget: 60
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    failureThreshold: 3
+
+  startupProbe:
+    failureThreshold: 30
+    periodSeconds: 5
+

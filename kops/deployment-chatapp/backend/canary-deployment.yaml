@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatapp-backend-dep-canary
+  labels:
+    app: chatapp-backend
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatapp-backend
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: chatapp-backend
+        version: v2
+    spec:
+      initContainers:
+        - name: init-myservice
+          image: busybox:1.28
+          command:
+            [
+              "sh",
+              "-c",
+              "until nslookup chatapp-db-ss-0.mysql-headless.deploy.svc.cluster.local; do echo waiting for myservice; sleep 2; done",
+            ]
+      containers:
+        - name: chatapp-django
+          image: sashankreddy97/chatapp-backend
+          ports:
+            - name: backend-port
+              containerPort: 8000
+
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 30
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+
+          envFrom:
+            - configMapRef:
+                name: backend-vars
+            - secretRef:
+                name: backend-secrets
+
+          command: ["bash", "-c"]
+          args:
+            - |
+              source /app/chat_app/venv/bin/activate && \
+              cd /app/chat_app/fundoo && \
+              python manage.py migrate --noinput || echo "Migration warning: maybe already applied" && \
+              python manage.py runserver 0.0.0.0:8000
+

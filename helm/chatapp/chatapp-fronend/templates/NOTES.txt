@@ -1,0 +1,18 @@
+Your ChatApp Frontend has been successfully deployed!
+
+To access the frontend service within the cluster:
+
+  kubectl get svc {{ .Release.Name }}-frontend
+
+This will expose the service on port {{ .Values.frontend.service.port }} inside the cluster.
+
+If you're using an Ingress (like ALB or NGINX), make sure it's configured to route traffic to this service.
+
+You can also verify the frontend deployment:
+
+  kubectl get pods -l app={{ .Release.Name }}-frontend
+
+To monitor the autoscaling behavior:
+
+  kubectl get hpa {{ .Release.Name }}-frontend-hpa
+

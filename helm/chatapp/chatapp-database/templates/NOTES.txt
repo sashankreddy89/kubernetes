@@ -1,0 +1,30 @@
+The ChatApp Database Helm chart has been successfully installed.
+
+Release Name: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+StatefulSet Details:
+- Name: {{ .Release.Name }}-db-ss
+- Replicas: {{ .Values.database.replicaCount }}
+- Storage Class: {{ .Values.database.storage.storageClass }}
+- PVC Size: {{ .Values.database.storage.size }}
+
+Configuration:
+- Secret: {{ .Release.Name }}-db-secrets
+- ConfigMap: {{ .Release.Name }}-db-vars
+
+Service:
+- Headless Service: {{ .Release.Name }}-mysql-headless
+- Port: 3306
+
+Internal DNS for connecting to MySQL (from within the cluster):
+- {{ .Release.Name }}-db-ss-0.{{ .Release.Name }}-mysql-headless.{{ .Release.Namespace }}.svc.cluster.local
+
+To check the pod status:
+  kubectl get pods -l app={{ .Release.Name }}-chatapp-db -n {{ .Release.Namespace }}
+
+To view logs from the StatefulSet pod:
+  kubectl logs statefulset/{{ .Release.Name }}-db-ss -n {{ .Release.Namespace }}
+
+To uninstall the chart:
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}

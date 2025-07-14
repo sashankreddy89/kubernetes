@@ -1,0 +1,45 @@
+database:
+  image: mysql
+  replicaCount: 1
+  minReadySeconds: 10
+
+  cm:
+    dbName: chatapp_db
+    dbUser: chatapp_user
+
+  sec:
+    rootPass: cm9vdA==
+    userPass: Y2hhdGFwcA==
+  
+  pdb:
+    minAvail: 1
+
+  storage:
+    storageClass: ebs-sc
+    size: 1Gi
+
+  probes:
+    readiness:
+      initialDelaySeconds: 15
+      periodSeconds: 5
+      failureThreshold: 3
+    startup:
+      periodSeconds: 5
+      failureThreshold: 10
+
+  tolerations:
+    - key: "database"
+      operator: "Equal"
+      value: "True"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: database
+                operator: In
+                values:
+                  - "True"
+

@@ -1,0 +1,12 @@
+dependencies:
+- name: chatapp-backend
+  repository: file://../chatapp-backend
+  version: 0.1.0
+- name: chatapp-fronend
+  repository: file://../chatapp-fronend
+  version: 0.1.0
+- name: chatapp-database
+  repository: file://../chatapp-database
+  version: 0.1.0
+digest: sha256:1abbd116b95177a41063c10b715fd94b763b82a0ab6e1d7402cd6e1771289b95
+generated: "2025-07-10T06:43:05.461002936Z"

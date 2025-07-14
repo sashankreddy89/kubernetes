@@ -1,0 +1,58 @@
+{{- $vals := .Values.frontend }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend-dep
+  labels:
+    app: {{ .Release.Name }}-frontend
+spec:
+  replicas: {{ $vals.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-frontend
+    spec:
+      containers:
+        - name: chatapp-nginx
+          image: {{ $vals.image }}
+          ports:
+            - name: frontend-port
+              containerPort: {{ $vals.service.port }}
+
+          {{- with $vals.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with $vals.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ $vals.service.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+
+          {{- with $vals.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ $vals.service.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+
+          {{- with $vals.startupProbe }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: {{ $vals.service.port }}
+            failureThreshold: {{ .failureThreshold }}
+            periodSeconds: {{ .periodSeconds }}
+          {{- end }}
+

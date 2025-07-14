@@ -1,0 +1,56 @@
+backend:
+  image: sashankreddy97/chatapp-backend
+  replicaCount: 3
+
+  config:
+    dbName: chatapp_db
+    dbUser: chatapp_user
+    dbHost: chatapp-db-ss-0.mysql-headless.default.svc.cluster.local
+    dbPort: "3306"
+
+  secret:
+    dbPassword: Y2hhdGFwcA==
+
+  service:
+    port: 8000
+
+  ingress:
+    enabled: true
+    host: chatapp.kops.sashankreddydevops.xyz
+    certificateArn: arn:aws:acm:ap-south-1:484907497301:certificate/b441ec31-40f5-4a28-adaf-1ac1a1030d00
+
+  pdb:
+    maxUnavailable: 25%
+
+  affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: backend
+              operator: In
+              values:
+                - "True"
+
+  startupProbe:
+    periodSeconds: 5
+    failureThreshold: 30
+
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "250m"
+    limits:
+      memory: "128Mi"
+      cpu: "500m"
+

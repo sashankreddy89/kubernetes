@@ -1,0 +1,86 @@
+{{- $vals := .Values.backend }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend-dep
+  labels:
+    app: {{ .Release.Name }}-backend
+spec:
+  replicas: {{ $vals.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-backend
+    spec:
+      {{- with $vals.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      initContainers:
+        - name: init-myservice
+          image: busybox:1.28
+          command:
+            [
+              "sh",
+              "-c",
+              "until nslookup {{ $vals.config.dbHost }}; do echo waiting for myservice; sleep 2; done"
+            ]
+
+      containers:
+        - name: chatapp-django
+          image: {{ $vals.image }}
+          ports:
+            - name: backend-port
+              containerPort: {{ $vals.service.port }}
+
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-backend-vars
+            - secretRef:
+                name: {{ .Release.Name }}-backend-secrets
+
+          command: ["bash", "-c"]
+          args:
+            - |
+              source /app/chat_app/venv/bin/activate && \
+              cd /app/chat_app/fundoo && \
+              python manage.py migrate --noinput || echo "Migration warning: maybe already applied" && \
+              python manage.py runserver 0.0.0.0:{{ $vals.service.port }}
+
+          {{- with $vals.startupProbe }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: {{ $vals.service.port }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+
+          {{- with $vals.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ $vals.service.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+
+          {{- with $vals.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ $vals.service.port }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            failureThreshold: {{ .failureThreshold }}
+          {{- end }}
+
+          {{- with $vals.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

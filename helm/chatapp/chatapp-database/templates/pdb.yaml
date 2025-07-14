@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-db-pdb
+spec:
+  minAvailable: {{ .Values.database.pdb.minAvail }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-chatapp-db

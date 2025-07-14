@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chatapp-backend-pod
+  labels:
+    app: backend
+spec:
+  initContainers:
+    - name: init-myservice
+      image: busybox:1.28
+      command:
+        [
+          "sh",
+          "-c",
+          "until nslookup db-svc.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done",
+        ]
+  containers:
+    - name: chatapp-backend
+      image: sashankreddy97/chatapp-backend
+      ports:
+        - name: backend-port
+          containerPort: 8000
+
+      startupProbe:
+        httpGet:
+          path: /
+          port: 8000
+        periodSeconds: 5
+        failureThreshold: 30
+
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 8000
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        failureThreshold: 3
+
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 8000
+        initialDelaySeconds: 10
+        periodSeconds: 10
+        failureThreshold: 3
+
+      envFrom:
+        - configMapRef:
+            name: backend-vars
+        - secretRef:
+            name: backend-secrets
+

@@ -1,0 +1,29 @@
+ChatApp Backend has been successfully deployed.
+
+Release Name: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Deployment: {{ .Release.Name }}-backend-dep
+Replicas: {{ .Values.backend.replicaCount }}
+Container Image: {{ .Values.backend.image }}
+
+Service: 
+- Name: {{ .Release.Name }}-backend
+- Port: {{ .Values.backend.service.port }}
+
+Ingress: 
+- Host: {{ .Values.backend.ingress.host }}
+- TLS: Enabled (via ACM)
+- IngressClass: alb
+
+MySQL DB Host: {{ .Values.backend.config.dbHost }}
+
+To view your backend pods:
+  kubectl get pods -l app={{ .Release.Name }}-backend -n {{ .Release.Namespace }}
+
+To access your application (if DNS is configured correctly):
+  http://{{ .Values.backend.ingress.host }}
+
+To uninstall:
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+

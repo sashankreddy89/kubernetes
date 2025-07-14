@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chatapp-ingress
+  namespace: default
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:484907497301:certificate/b441ec31-40f5-4a28-adaf-1ac1a1030d00
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    external-dns.alpha.kubernetes.io/hostname: chatapp.kops.sashankreddydevops.xyz
+spec:
+  ingressClassName: alb
+  rules:
+    - host: chatapp.kops.sashankreddydevops.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: chatapp-backend
+                port:
+                  number: 8000
+

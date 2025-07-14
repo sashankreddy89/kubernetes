@@ -1,0 +1,69 @@
+{{- $name := include "chatapp.fullname" . }}
+{{- $vals := .Values.database }}
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: chatapp-db-ss
+  labels:
+    app: {{ $name }}
+spec:
+  serviceName: {{ .Release.Name }}-mysql-headless
+  replicas: {{ $vals.replicaCount }}
+  minReadySeconds: {{ $vals.minReadySeconds }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      terminationGracePeriodSeconds: 10
+
+      {{- with $vals.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with $vals.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: chatapp-mysql
+          image: "{{ $vals.image }}"
+          ports:
+            - containerPort: 3306
+              name: db-port
+          volumeMounts:
+            - name: mysql
+              mountPath: /var/lib/mysql
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-db-vars
+            - secretRef:
+                name: {{ .Release.Name }}-db-secrets
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: {{ $vals.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ $vals.probes.readiness.periodSeconds }}
+            failureThreshold: {{ $vals.probes.readiness.failureThreshold }}
+          startupProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: {{ $vals.probes.startup.periodSeconds }}
+            failureThreshold: {{ $vals.probes.startup.failureThreshold }}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ $vals.storage.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ $vals.storage.size | quote }}
+

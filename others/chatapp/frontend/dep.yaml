@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      initContainers:
+        - name: wait-for-backend
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z chatapp-backend 8000; do echo waiting for backend; sleep 2; done",
+            ]
+      containers:
+        - name: frontend
+          image: sashankreddy97/chatapp-frontend
+          ports:
+            - containerPort: 80
+

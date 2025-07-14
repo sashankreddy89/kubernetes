@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-frontend
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app: chatapp-frontend
+
